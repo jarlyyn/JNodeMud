@@ -1,0 +1,179 @@
+<!DOCTYPE html>
+<html lang="zh-cn">
+<html>
+    <head>
+        <meta charset="utf-8">
+        <meta http-equiv="X-UA-Compatible" content="IE=edge">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <meta name="description" content="">
+        <meta name="author" content="">        
+        <title>JNodeMud</title>
+        <link href="css/bootstrap.min.css" rel="stylesheet">
+        <link href="css/plugins/metisMenu/metisMenu.min.css" rel="stylesheet">
+        <link href="css/sb-admin-2.css" rel="stylesheet">
+        <link href="css/color.css" rel="stylesheet">
+        <link href="font-awesome-4.1.0/css/font-awesome.min.css" rel="stylesheet" type="text/css">        
+        <script src='/js/jquery.min.js'></script>
+        <script src="js/bootstrap.min.js"></script>
+        <script src="js/screen.js"></script>
+        <script src="js/plugins/metisMenu/metisMenu.min.js"></script>
+        <script src="js/sb-admin-2.js"></script>        
+        <script src='/js/knockout.js'></script>
+        <script src='/js/ko-undersocre.js'></script>
+        <script src='/js/lodash.min.js'></script>
+        <script src="/socket.io/socket.io.js"></script>
+        <script src="/js/main.js"></script>
+        <link type="text/css" href="css/style.css" rel='stylesheet'/>
+    </head>
+    <body>
+    <div id="wrapper">
+        <nav class="navbar navbar-default navbar-fixed-top" role="navigation">
+        <div class="btn-toolbar" role="toolbar">
+        <div class="btn-group" role="group">
+  <script type='template' id='main-toolbar-current'><%if (id){ %><span class="glyphicon <% if (connected){%>glyphicon-globe<% } else {%>glyphicon-remove<% }%>"></span><% if (id){ %><%= id %>@<%= host %>:<%= port %><% }} else {%>--请选择需要显示信息的连接--<% }%></script>
+<script type='template' id='main-toolbar-client-list'>
+    <li data-id='<%- id %>'><span class="glyphicon <% if (connected){%>glyphicon-globe<% } else {%>glyphicon-remove<% }%>"></span><% if (id){ %><%= id %>@<%= host %>:<%= port %><% } %></li>
+</script>
+  <button data-bind="template:{name: 'main-toolbar-current' , data:currentInfo}" type="button" class="btn btn-default"></button>
+  <button type="button" class="btn btn-default dropdown-toggle" data-toggle="dropdown" aria-expanded="false">
+    <span class="caret"></span>
+    <span class="sr-only">Toggle Dropdown</span>
+  </button>
+  <ul id='main-menu-clients-list' class="dropdown-menu" role="menu"data-bind="template:{name: 'main-toolbar-client-list',foreach:mudClients}"></ul>            
+          <a role='button' type="button" class="btn btn-default" data-toggle="modal" data-target="#createClient" title="新建"><span class="glyphicon glyphicon-file"></span></a>
+        </div>
+        <div class="btn-group" role="group">
+          <button type="button" class="btn btn-default" disabled=‘disabled’><span class="glyphicon glyphicon-info-sign"></span>信息</button>
+        </div>        
+        </div>
+        </nav>
+        <div id='left-side-bar' class="navbar-default sidebar" role="navigation">        
+        <ul class='list-group' id='clientList' data-bind="foreach: { data : mudClients , as : 'client' }">
+            <li class='list-group-item' data-bind="attr : { 'data-id' : $data.id } , css : { 'list-group-item-warning' : $data.connected , 'list-group-item-danger' : ! $data.connected , connected : $data.connected }">
+                <span data-bind="text: $data.id"></span>
+            </li>
+        </ul>
+        </div>
+        <div id="page-wrapper" class='null'>
+        <div class="btn-toolbar" role="toolbar">
+        <div id='client-toolbar' class="btn-group" role="group">
+        <div class="btn-group" role="group">
+            <script id='client-toolbar-button-connect' type='template'><% if (connected){ %>断开<% } else { %>连接<% }%></script>
+            <a id='client-toolbar-connect-toggle-button' type="button" class="btn btn-default" data-bind="css:{'active' : currentInfo.connected } , template: { name :'client-toolbar-button-connect' , data:currentInfo}" role='button'></a>
+        </div>
+          <button id='client-toolbar-edit-button' type="button" class="btn btn-default" data-target="#createClient"><span class="glyphicon glyphicon-pencil"></span>修改</button>
+            <a id='client-toolbar-close-button' title='关闭' role='button' class='pull-right btn btn-default'><span class='glyphicon glyphicon-remove'></span></a>
+        </div>            
+        </div>
+        <div id='input-area'>
+            <span id='prompt'></span>
+                <input id='input' placeholder='输入命令，按回车发送.'/>
+        </div>
+        <div id='output'><ul id='lines'></ul></div>
+        </div>
+        </div>
+
+        <div class="modal fade" id="createClient">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+        <h4 class="modal-title">新建</h4>
+      </div>
+      <div class="modal-body">
+        <form id='create-client-form'>
+            <div class='error-msg'></div>
+            <script id='create-client-form-error' type='template'>
+                <div class="alert alert-danger" role="alert">
+                <b>错误:</b>
+                <ul>
+                <% for (var i in errors) {%>
+                <li><%- errors[i].msg%></li>
+                <% } %>
+                </ul>
+                <div>
+            </script>
+            <label for="create-client-form-id">名称</label>
+            <input type="text" class="form-control" name="create-client-form-id" placeholder="输入ID">
+            <label for="create-client-form-host">服务器地址</label>
+            <input type="text" class="form-control" name="create-client-form-host" placeholder="输入服务器地址">
+            <label for="create-client-form-port">服务器端口</label>
+            <input type="text" class="form-control" name="create-client-form-port" placeholder="输入服务器地址">
+            <label for="create-client-form-charset">字符编码</label>
+            <select name='create-client-form-charset' class="form-control">
+                <option value='GBK'>GBK</option>
+                <option value='UTF-8'>UTF-8</option>
+            </select>            
+        </form>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-default" data-dismiss="modal">关闭</button>
+        <button id='create-client-form-create' type="button" class="btn btn-primary">创建</button>
+     <script>
+         var createClientFormErrorTemplate=_.template($('#create-client-form-error').html());
+         $('#create-client-form-create').click(function(){
+             $.post('/system/createClient',$('#create-client-form').serializeArray(),function(data){
+                if (data.errors)
+                {
+                    $('#create-client-form .error-msg').html(createClientFormErrorTemplate({errors:data.errors}));
+                }else{
+                    $('#create-client-form .error-msg').html('');
+                    $('#createClient').modal('hide');
+                }
+             },'json');
+        });
+          </script>
+        </div>
+    </div><!-- /.modal-content -->
+  </div><!-- /.modal-dialog -->
+</div><!-- /.modal -->
+<script type='template' id='error-msg-template'>
+<% if (errors) {%>
+                <div class="alert alert-danger" role="alert">
+                <b>错误:</b>
+                <ul>
+                <% for (var i in errors) {%>
+                <li><%- errors[i].msg%></li>
+                <% } %>
+                </ul>
+                <div>
+<% } %>                
+</script>            
+<script type='template' id='client-setting-template'>
+        <%
+            var charsetlist=['GBK','UTF-8'];
+        %>
+        <form>
+            <div class='error-msg'></div>        
+            <label for="create-client-form-host">服务器地址</label>
+            <input type="text" class="form-control" value='<%- settings.host%>' name="create-client-form-host" placeholder="输入服务器地址">
+            <label for="create-client-form-port">服务器端口</label>
+            <input type="text" class="form-control" value='<%- settings.port%>' name="create-client-form-port" placeholder="输入服务器地址">
+            <label for="create-client-form-charset">字符编码</label>
+            <select name='create-client-form-charset' class="form-control">
+                <% for (var i in charsetlist){ %>
+                <option <% if (charsetlist[i]==settings.charset){ %>selected='selected'<% } %>value='<%- charsetlist[i] %>'><%- charsetlist[i] %></option>
+                <% } %>
+            </select>            
+        </form>
+</script>
+        <div class="modal fade" id="client-setting-modal">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+        <h4 class="modal-title">设置</h4>
+      </div>          
+      <div class="modal-body">
+      </div>
+
+      <div class="modal-footer">
+        <button type="button" class="btn btn-default" data-dismiss="modal">关闭</button>
+        <button type="button" class="save btn btn-primary">保存</button>
+      </div>
+    </div><!-- /.modal-content -->
+  </div><!-- /.modal-dialog -->
+</div><!-- /.modal -->
+            
+    </body>
+</html>

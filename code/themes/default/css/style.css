@@ -1,0 +1,55 @@
+    
+html{
+    height:100%;
+    overflow: hidden;
+}
+
+body {
+    height:100%;
+}
+
+#input-area {
+    position: absolute;
+    bottom: 0px;
+    left:0px;
+    width:100%;
+    line-height: 20px;
+    height:20px;
+    z-index:1;
+    background: white
+}
+#prompt{position: absolute;height:100%}
+#input{width:100%;height:100%;display: block}
+#output{
+    height:100%;
+    overflow: auto;    
+}
+#output ul#lines{
+    overflow: auto;
+    padding: 101px 0 20px 0;    
+}
+#wrapper{
+    height: 100%
+}
+#left-side-bar {
+    position: fixed;
+    height:100%;
+    overflow: auto;
+}
+
+#page-wrapper {
+    position: relative;
+    height:100%;
+    overflow: hidden;
+    padding:0;
+}
+#page-wrapper.null{
+    display: none;
+}
+#client-toolbar{
+    position: absolute;
+    width:100%;
+    z-index: 1;
+    background: white;
+    top:50px
+}

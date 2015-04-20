@@ -6,6 +6,12 @@ var ui=function(app){
     isUniqueClient:function(value)
     {
       return !app.hasClient(value);
+    },
+    isCurrentClient:function(value)
+    {
+      if (value==null){return false;}
+      if (app.currentClient==null){return false;}
+      return app.currentClient.id==value;
     }
   };
   var express=Express();
@@ -52,6 +58,15 @@ var ui=function(app){
     res.json({errors:req.validationErrors()});
     
   });
+  express.post('/currentClient/delete',function(req,res,next){
+  if (app.currentClient==null){return res.json({errors:null})};        
+    req.checkBody('delete-client-form-id','游戏ID不正确').isCurrentClient();
+    if (req.validationErrors()==null){
+      app.removeCurrentClient();
+    }
+    res.json({errors:req.validationErrors()});
+  });
+  
   this.mudApp=app;
   this.server=server;
   this.express=express;

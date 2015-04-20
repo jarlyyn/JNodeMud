@@ -17,6 +17,17 @@ var Client=function(app,id,config)
   this.logCmd=true;
 }
 util.inherits(Client,Component);
+Client.prototype.destory=function()
+{
+  if (this.conn)
+  {
+    //this.conn.end();
+    this.conn.removeAllListeners();
+    delete this.conn;
+  }
+  this.emit('destory',this);
+  this.removeAllListeners();
+}
 Client.prototype.createConnect=function()
 {
   delete this.conn;
@@ -150,8 +161,21 @@ MudApp.prototype.createClient=function(id,config)
   clientConfig.set(id,config);
   clientConfig.save();
   this.loadClient(id,config);
+  this.setCurrentClient(id);
  }
  return this.clients[id]; 
+}
+MudApp.prototype.removeCurrentClient=function()
+{
+  if (this.currentClient!=null)
+  {
+    clientConfig.delete(this.currentClient.id);
+    clientConfig.save();
+    delete this.clients[this.currentClient.id];
+    this.currentClient.destory();
+    this.setCurrentClient(null);
+    this.updateClients();
+  }
 }
 MudApp.prototype.updateCurrentClientConfig=function(config)
 {
@@ -230,7 +254,7 @@ MudApp.prototype.setCurrentClient=function(id)
   if (id==null || this.clients[id])
   {
     if (this.currentClient==null && id!=null ||this.currentClient.id!=id){this.emit('currentClientChanged',id);}
-    this.currentClient=id?this.clients[id]:null;
+    this.currentClient=(id!=null)?this.clients[id]:null;
     this.updateCurrent();
   }
 }

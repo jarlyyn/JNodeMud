@@ -61,7 +61,8 @@
             <script id='client-toolbar-button-connect' type='template'><% if (connected){ %>断开<% } else { %>连接<% }%></script>
             <a id='client-toolbar-connect-toggle-button' type="button" class="btn btn-default" data-bind="css:{'active' : currentInfo.connected } , template: { name :'client-toolbar-button-connect' , data:currentInfo}" role='button'></a>
         </div>
-          <button id='client-toolbar-edit-button' type="button" class="btn btn-default" data-target="#createClient"><span class="glyphicon glyphicon-pencil"></span>修改</button>
+          <button id='client-toolbar-edit-button' type="button" class="btn btn-default"><span class="glyphicon glyphicon-pencil"></span>修改</button>
+          <button id='client-toolbar-delete-button' type="button" class="btn btn-danger"><span class="glyphicon glyphicon-remove"></span>删除</button>        
             <a id='client-toolbar-close-button' title='关闭' role='button' class='pull-right btn btn-default'><span class='glyphicon glyphicon-remove'></span></a>
         </div>            
         </div>
@@ -140,6 +141,11 @@
 <% } %>                
 </script>            
 <script type='template' id='client-setting-template'>
+      <div class="modal-header">
+        <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+        <h4 class="modal-title">设置</h4>
+      </div>          
+      <div class="modal-body">
         <%
             var charsetlist=['GBK','UTF-8'];
         %>
@@ -156,21 +162,35 @@
                 <% } %>
             </select>            
         </form>
-</script>
-        <div class="modal fade" id="client-setting-modal">
-  <div class="modal-dialog">
-    <div class="modal-content">
-      <div class="modal-header">
-        <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
-        <h4 class="modal-title">设置</h4>
-      </div>          
-      <div class="modal-body">
       </div>
 
       <div class="modal-footer">
         <button type="button" class="btn btn-default" data-dismiss="modal">关闭</button>
-        <button type="button" class="save btn btn-primary">保存</button>
+        <button type="button" class="save btn btn-primary" id='client-setting-modal-save'>保存</button>
+      </div>        
+</script>
+<script type='template' id='client-delete-template'>
+      <div class="modal-header">
+        <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+        <h4 class="modal-title">删除</h4>
+      </div>          
+      <div class="modal-body">
+        <form>
+            <div class='error-msg'></div>
+        <p>请输入当前游戏ID:<span style='color:red'><%- currentInfo.id %></span>删除当前游戏</p>            
+            <label for="delete-client-form-id">ID</label>
+            <input type="text" class="form-control" value='' name="delete-client-form-id" placeholder="输入要删除的游戏ID">
+        </form>
       </div>
+
+      <div class="modal-footer">
+        <button type="button" class="btn btn-default" data-dismiss="modal">关闭</button>
+        <button type="button" class="save btn btn-danger" id='client-setting-modal-delete'>删除</button>
+      </div>        
+</script>        
+        <div class="modal fade" id="client-setting-modal">
+  <div class="modal-dialog">
+    <div class="modal-content">
     </div><!-- /.modal-content -->
   </div><!-- /.modal-dialog -->
 </div><!-- /.modal -->

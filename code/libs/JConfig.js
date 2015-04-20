@@ -41,6 +41,11 @@ BaseConfig.prototype.set=function(name,value)
   this.load();
   this.data[name]=value;
 }
+BaseConfig.prototype.delete=function(name)
+{
+  this.load();
+  delete this.data[name];
+}
 BaseConfig.prototype.save=function(callback){
   if (callback==null)
   {

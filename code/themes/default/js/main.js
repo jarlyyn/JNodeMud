@@ -78,7 +78,7 @@ $('#clientList,#main-menu-clients-list').on('click','li',function(){
 });
 var error_msg_template=_.template($('#error-msg-template').html());
 var client_edit_modal_template=_.template($('#client-setting-template').html());
-$('body').on('click','#client-setting-modal button.save',function(){
+$('body').on('click','#client-setting-modal button#client-setting-modal-save',function(){
     $.post('/currentClient/update/',$('#client-setting-modal form').serializeArray(),function(data){
         if(data.errors)
         {
@@ -93,8 +93,24 @@ $('#page-wrapper').on('click','#client-toolbar-edit-button',function(){
     $.get('/currentClient/settings',function(data){
         if (data){
             var html=client_edit_modal_template({settings:data});
-            $('#client-setting-modal .modal-body').html(html);
+            $('#client-setting-modal .modal-content').html(html);
             $('#client-setting-modal').modal('show');
+        }
+    },'json')
+});
+var client_delete_modal_template=_.template($('#client-delete-template').html());
+$('#page-wrapper').on('click','#client-toolbar-delete-button',function(){
+            var html=client_delete_modal_template({currentInfo:clientsModel.currentInfo()});
+            $('#client-setting-modal .modal-content').html(html);
+            $('#client-setting-modal').modal('show');
+});
+$('body').on('click','#client-setting-modal button#client-setting-modal-delete',function(){
+    $.post('/currentClient/delete',$('#client-setting-modal form').serializeArray(),function(data){
+        if(data.errors)
+        {
+                    $('#client-setting-modal .error-msg').html(error_msg_template({errors:data.errors}));            
+        }else{
+                    $('#client-setting-modal').modal('hide');            
         }
     },'json')
 });

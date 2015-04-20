@@ -32,7 +32,7 @@
         <div class="btn-group" role="group">
   <script type='template' id='main-toolbar-current'><%if (id){ %><span class="glyphicon <% if (connected){%>glyphicon-globe<% } else {%>glyphicon-remove<% }%>"></span><% if (id){ %><%= id %>@<%= host %>:<%= port %><% }} else {%>--请选择需要显示信息的连接--<% }%></script>
 <script type='template' id='main-toolbar-client-list'>
-    <li data-id='<%- id %>'><span class="glyphicon <% if (connected){%>glyphicon-globe<% } else {%>glyphicon-remove<% }%>"></span><% if (id){ %><%= id %>@<%= host %>:<%= port %><% } %></li>
+    <li data-id='<%- id %>'><span class="glyphicon <% if (connected){%>glyphicon-globe<% } else {%>glyphicon-remove<% }%>"></span><% if (id){ %><%= id %>@<%= host %>:<%= port %><% } %><% if (clientsModel.currentInfo().id==id) {%> *<%}%></li>
 </script>
   <button data-bind="template:{name: 'main-toolbar-current' , data:currentInfo}" type="button" class="btn btn-default"></button>
   <button type="button" class="btn btn-default dropdown-toggle" data-toggle="dropdown" aria-expanded="false">

@@ -5,18 +5,25 @@ var MudConnect=require('./MudConnect');
 var Component=require('./Component');
 var _=require('lodash');
 var moment=require('moment');
+var ClientVm=require('./mudclientvm');
 var Client=function(app,id,config)
 {
   Component.call(this);
   this.app=app;
   this.id=id;
+  this.vm=null;
   this.config=config;
   this.createConnect();
   this.buffer=[];
   this.maxBuffer=2000;
   this.logCmd=true;
+  this.loadScript('test');
 }
 util.inherits(Client,Component);
+Client.prototype.loadScript=function(id)
+{
+  this.vm=new ClientVm(this,id);
+}
 Client.prototype.destory=function()
 {
   if (this.conn)
@@ -75,6 +82,10 @@ Client.prototype.netConnectMsg=function()
 Client.prototype.echoErrorMsg=function(msg)
 {
   this.echo(msg,'red');
+}
+Client.prototype.msg=function(msg)
+{
+  this.echo(msg);
 }
 Client.prototype.echo=function(value,color)
 {
@@ -176,6 +187,10 @@ MudApp.prototype.removeCurrentClient=function()
     this.setCurrentClient(null);
     this.updateClients();
   }
+}
+MudApp.prototype.getScriptPath=function(name)
+{
+  return __dirname+'/../../scripts/'+name;
 }
 MudApp.prototype.updateCurrentClientConfig=function(config)
 {

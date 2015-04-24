@@ -1,6 +1,18 @@
 var vm = require('vm');
 var path=require('path');
 var fs=require('fs');
+var util=require('util');
+var Trigger=require('./mudclienttrigger');
+var Model=require('./muddatamodel');
+var MudClientScriptFramework=function()
+{
+}
+MudClientScriptFramework.prototype.addTrigger()
+{
+}
+MudClientScriptFramework.prototype.setModel()
+{
+}
 var MudClientVm=function(client,name)
 {
   this.client=client;
@@ -13,8 +25,8 @@ var MudClientVm=function(client,name)
     this.errorMsg('配置文件加载失败。')
     return;
   }
+  this.createSandBox();    
   this.buildApi();
-  this.createSandBox();  
   this.require(this.config.script);
 }
 MudClientVm.prototype.errorMsg=function(msg)
@@ -27,7 +39,6 @@ MudClientVm.prototype.loadConfig=function(){
       var data=fs.readFileSync(path);
     }catch (err)
     {
-      console.log(err);
       this.errorMsg('无法打开'+path);
       return null;
     }
@@ -42,39 +53,47 @@ MudClientVm.prototype.loadConfig=function(){
 }
 MudClientVm.prototype.createSandBox=function()
 {
-  this.context=vm.createContext(this.sandbox);
-  return this.sandbox;
+  this.context=vm.createContext({});
 }
 MudClientVm.prototype.buildApi=function()
 {
-  this.module={};  
-  var sandbox=this.sandbox={};
+  var sandbox=this.context;
   var vm=this;
-  sandbox.module=this.module;
-  sandbox.require=function(){vm.require.apply(vm,arguments)};
-  sandbox.module.require=sandbox.require;
-  sandbox.echo=function(){vm.client.msg.apply(vm.client,arguments)};
+  sandbox.util={};
+  sandbox.util.inspect=function(){return util.inspect.apply(util,arguments)};
+  sandbox.require=function(){return vm.require.apply(vm,arguments)};
+  //sandbox.module.require=sandbox.require;
+  sandbox.echo=function(){return vm.client.msg.apply(vm.client,arguments)};
 }
 MudClientVm.prototype.require=function(filename)
 {
-    var path=this.path+'/'+filename;
+    var oldModule=this.context.module;
+    var filepath=path.resolve(this.path+'/'+filename);
+    if (filepath.indexOf(this.path)!=0)
+    {
+      this.errorMsg('错误：'+filepath+'不在脚本文件夹内');
+      return null;
+    }
+    var newModule={};    
     try {  
-      var data=fs.readFileSync(path);
+      var data=fs.readFileSync(filepath);
     }catch (err)
     {
-      console.log(err);
-      this.errorMsg('无法打开'+path);
+      this.errorMsg('错误：无法打开'+filepath);
       return null;
     }
     try{
-      this.client.msg('载入脚本:'+path);
-      vm.runInContext(data,this.context,path);
+      this.client.msg('载入脚本:'+filepath);
+      this.context.module=newModule;
+      vm.runInContext(data,this.context,filepath);
     }
     catch (err)
     {
         this.errorMsg('错误['+err.name+']!');
         this.errorMsg(err.stack);
-    }  
-    
+    }
+    this.context.module=oldModule;
+    return newModule.exports;
 }
+
 module.exports=MudClientVm;

@@ -118,6 +118,9 @@ Client.prototype.send=function(cmd)
 }
 Client.prototype.onResult=function(data)
 {
+  if (this.vm){
+    this.vm.exec(data.lines);
+  }
   for ( var i in data.lines)
   {
     this.output(data.lines[i]);

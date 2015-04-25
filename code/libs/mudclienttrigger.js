@@ -1,9 +1,9 @@
-var XRegExp = require('xregexp');
-var Trigger=function()
+var XRegExp = require('xregexp').XRegExp;
+var Trigger=function(pattern,settings)
 {
-  this.pattern=null
-  this.regexp=null;
-  this.enabled=null;
+  this.regexp=null;  
+  this.setPattern(pattern);
+  this.enabled=true;
   this.models={};
 }
 Trigger.prototype.setPattern=function(pattern)
@@ -13,6 +13,10 @@ Trigger.prototype.setPattern=function(pattern)
 }
 Trigger.prototype.updateRegexp=function()
 {
-  this.regexp=new RegExp(this.pattern,);
+  this.regexp=new XRegExp(this.pattern);
+}
+Trigger.prototype.exec=function(str)
+{
+  return this.regexp?XRegExp.exec(str,this.regexp):null;
 }
 module.exports=Trigger;

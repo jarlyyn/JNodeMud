@@ -75,7 +75,7 @@ ansiBuffer.prototype.hookStandard={
   null:function(result,char){result.pushChar(char);},
 }
 ansiBuffer.prototype.hookAfterCr={
-    10:function(result,char){result.saveCmd(10)},
+    10:function(result,char){result.saveCmd(10);this.hook=ansiBuffer.prototype.hookStandard},
     27:function(result,char){result.saveCmd(null);result.pushChar(char);this.hook=ansiBuffer.prototype.hookAfterSign},    
     null:function(result,char){result.pushChar(char);this.hook=ansiBuffer.prototype.hookStandard},
 }

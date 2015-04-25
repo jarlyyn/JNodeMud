@@ -6,17 +6,43 @@ var Trigger=require('./mudclienttrigger');
 var Model=require('./muddatamodel');
 var MudClientScriptFramework=function()
 {
+  this.triggers={}
 }
-MudClientScriptFramework.prototype.addTrigger()
+MudClientScriptFramework.prototype.addTrigger=function(name,pattern,settings)
+{
+  this.triggers[name]=new Trigger(pattern,settings);
+}
+MudClientScriptFramework.prototype.setModel=function(name)
 {
 }
-MudClientScriptFramework.prototype.setModel()
+MudClientScriptFramework.prototype.getTriggersApi=function()
 {
+  var api={};
+  var vm=this;
+  api.add=function(){vm.addTrigger.apply(vm,arguments)};
+  return api;
+}
+MudClientScriptFramework.prototype.exec=function(lines)
+{
+  var triggers=this.getEnabledTriggers();
+  for(var i in lines)
+  {
+    console.log(util.inspect(lines[i].plainLines));
+    for (var triggerName in triggers)
+    {
+      console.log(triggers[triggerName].exec(lines[i].plainLines));
+    }
+  }
+}
+MudClientScriptFramework.prototype.getEnabledTriggers=function()
+{
+  return this.triggers;
 }
 var MudClientVm=function(client,name)
 {
   this.client=client;
-  this.name=name;  
+  this.name=name;
+  this.framework=new MudClientScriptFramework();
   this.path=path.resolve(client.app.getScriptPath(name));
   this.loaded=false;
   this.loadConfig();
@@ -28,6 +54,10 @@ var MudClientVm=function(client,name)
   this.createSandBox();    
   this.buildApi();
   this.require(this.config.script);
+}
+MudClientVm.prototype.exec=function(lines)
+{
+  this.framework.exec(lines);
 }
 MudClientVm.prototype.errorMsg=function(msg)
 {
@@ -64,6 +94,7 @@ MudClientVm.prototype.buildApi=function()
   sandbox.require=function(){return vm.require.apply(vm,arguments)};
   //sandbox.module.require=sandbox.require;
   sandbox.echo=function(){return vm.client.msg.apply(vm.client,arguments)};
+  sandbox.triggers=vm.framework.getTriggersApi();
 }
 MudClientVm.prototype.require=function(filename)
 {

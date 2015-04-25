@@ -4,8 +4,9 @@ var fs=require('fs');
 var util=require('util');
 var Trigger=require('./mudclienttrigger');
 var Model=require('./muddatamodel');
-var MudClientScriptFramework=function()
+var MudClientScriptFramework=function(vm)
 {
+  this.vm=vm;
   this.triggers={}
 }
 MudClientScriptFramework.prototype.addTrigger=function(name,pattern,settings)
@@ -15,6 +16,7 @@ MudClientScriptFramework.prototype.addTrigger=function(name,pattern,settings)
 MudClientScriptFramework.prototype.setModel=function(name)
 {
 }
+
 MudClientScriptFramework.prototype.getTriggersApi=function()
 {
   var api={};
@@ -27,10 +29,16 @@ MudClientScriptFramework.prototype.exec=function(lines)
   var triggers=this.getEnabledTriggers();
   for(var i in lines)
   {
-    console.log(util.inspect(lines[i].plainLines));
     for (var triggerName in triggers)
     {
-      console.log(triggers[triggerName].exec(lines[i].plainLines));
+    try{      
+      var result=(triggers[triggerName].exec(lines[i].plainLines));
+    }
+    catch (err)
+    {
+        this.vm.errorMsg('错误['+err.name+']!');
+        this.vm.errorMsg(err.stack);
+    }
     }
   }
 }
@@ -42,7 +50,7 @@ var MudClientVm=function(client,name)
 {
   this.client=client;
   this.name=name;
-  this.framework=new MudClientScriptFramework();
+  this.framework=new MudClientScriptFramework(this);
   this.path=path.resolve(client.app.getScriptPath(name));
   this.loaded=false;
   this.loadConfig();
@@ -85,6 +93,30 @@ MudClientVm.prototype.createSandBox=function()
 {
   this.context=vm.createContext({});
 }
+MudClientVm.prototype.send=function(cmds)
+{
+  if (typeof cmds =='string'){
+    this.sendToClient(cmds);
+    return;
+  }
+  if (Array.isArray(cmds))
+  {
+    for(var i in cmds)
+    {
+      this.sendToClient(cmds[i]);      
+    }
+    return;
+  }
+  this.errorMsg(util.inspect(cmds)+'不是字符串或者Array');   
+}
+MudClientVm.prototype.sendToClient=function(cmds)
+{
+  if (typeof cmds =='string'){
+    this.client.send(cmds);
+    return;
+  }
+  this.errorMsg(util.inspect(cmds)+'不是字符串'); 
+}
 MudClientVm.prototype.buildApi=function()
 {
   var sandbox=this.context;
@@ -94,6 +126,7 @@ MudClientVm.prototype.buildApi=function()
   sandbox.require=function(){return vm.require.apply(vm,arguments)};
   //sandbox.module.require=sandbox.require;
   sandbox.echo=function(){return vm.client.msg.apply(vm.client,arguments)};
+  sandbox.send=function(){return vm.send.apply(vm,arguments)}
   sandbox.triggers=vm.framework.getTriggersApi();
 }
 MudClientVm.prototype.require=function(filename)
